@@ -1,0 +1,43 @@
+workflow_id: sample_ingestion
+tasks:
+  - id: fetch_data
+    type: python  # ← THIS MUST BE 'python', NOT 'http'
+    depends_on: []
+    data_classification: "public"
+    config:
+      function: "validate_schema"
+      params:
+        test_ "simulated_data"
+  - id: clean_data
+    type: python
+    depends_on: [fetch_data]
+    data_classification: "public"
+    config:
+      function: "clean_dataframe"
+      params:
+        columns: ["id", "title", "body"]
+  - id: validate_schema
+    type: python
+    depends_on: [clean_data]
+    data_classification: "public"
+    config:
+      function: "validate_schema"
+      params:
+        required_columns: ["id", "title", "body"]
+  - id: publish_results
+    type: python
+    depends_on: [validate_schema]
+    data_classification: "public"
+    config:
+      function: "transform_data"
+      params:
+        output_format: "json"
+retry_policy:
+  max_attempts: 3
+  delay_seconds: 2
+  exponential_backoff: true
+compensation_handlers:
+  fetch_ "rollback_fetch_data"
+  clean_ "rollback_clean_data"
+  validate_schema: "rollback_validate_schema"
+  publish_results: "rollback_publish_results"

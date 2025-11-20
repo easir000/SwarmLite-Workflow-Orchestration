@@ -1,0 +1,43 @@
+workflow_id: reliable_sample
+tasks:
+  - id: initialize_data
+    type: python
+    depends_on: []
+    data_classification: "public"
+    config:
+      function: "validate_schema"
+      params:
+        initial_data: "ready"
+  - id: process_data
+    type: python
+    depends_on: [initialize_data]
+    data_classification: "public"
+    config:
+      function: "clean_dataframe"
+      params:
+        columns: ["id", "value", "status"]
+  - id: validate_output
+    type: python
+    depends_on: [process_data]
+    data_classification: "public"
+    config:
+      function: "validate_schema"
+      params:
+        required_columns: ["id", "value", "status"]
+  - id: finalize_results
+    type: python
+    depends_on: [validate_output]
+    data_classification: "public"
+    config:
+      function: "transform_data"
+      params:
+        output_format: "json"
+retry_policy:
+  max_attempts: 2
+  delay_seconds: 1
+  exponential_backoff: false
+compensation_handlers:
+  initialize_data: "rollback_initialize"
+  process_data: "rollback_process"
+  validate_output: "rollback_validate"
+  finalize_results: "rollback_finalize"

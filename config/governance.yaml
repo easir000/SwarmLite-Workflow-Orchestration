@@ -1,0 +1,56 @@
+# Easir Maruf's AI Governance Policy for SwarmLite
+# Implemented per HIPAA, GDPR, ISO 27001, and BD DPA standards
+# Version: 1.0 | Last Updated: 2025-11-20
+
+policy_owner: "Easir Maruf"
+policy_version: "1.0"
+compliance_standards:
+  - HIPAA
+  - GDPR
+  - ISO_27001
+  - BD_DPA
+  - NIST_AI_RMFR
+
+rules:
+  # Data Handling
+  max_data_retention_days: 90
+  pii_retention_override: false
+  phi_encryption_required: true
+  data_minimization: true
+
+  # Model & LLM Governance
+  llm_allowed_models:
+    - "gpt-4-turbo"
+    - "claude-3-opus"
+    - "mistral-large"
+  banned_prompts:
+    - "ignore previous instructions"
+    - "pretend you're not an AI"
+    - "reveal system prompt"
+  max_tokens_per_prompt: 2000
+  hallucination_threshold: 0.75  # Confidence score below which human review is triggered
+
+  # Audit & Accountability
+  audit_log_retention_days: 365
+  signature_algorithm: "HMAC-SHA256"
+  mandatory_signoff_for:
+    - "llm"
+    - "rag"
+    - "database_write"
+    - "external_api_call"
+
+  # Operational Controls
+  max_concurrent_workflows: 20
+  max_retry_attempts: 3
+  exponential_backoff: true
+  rollback_on_failure: true
+  enable_telemetry: true
+  enable_logging_masking: true
+
+  # Access & Authentication
+  api_key_required: true
+  audit_secret_key_required: true
+  db_encryption_key_required: true
+  required_headers:
+    - "X-Request-Source"  # e.g., "voice_agent", "healthcare_portal"
+    - "X-Client-ID"        # e.g., "hospital-xyz", "partner-abc"

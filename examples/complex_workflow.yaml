@@ -1,0 +1,58 @@
+workflow_id: complex_data_pipeline
+tasks:
+  - id: extract_raw_data
+    type: http
+    depends_on: []
+    data_classification: "public"
+    config:
+      url: "https://api.example.com/data"
+      method: "GET"
+  - id: validate_input
+    type: python
+    depends_on: [extract_raw_data]
+    data_classification: "public"
+    config:
+      function: "validate_schema"
+  - id: clean_and_transform
+    type: python
+    depends_on: [validate_input]
+    data_classification: "public"
+    config:
+      function: "clean_dataframe"
+  - id: enrich_data
+    type: http
+    depends_on: [clean_and_transform]
+    data_classification: "public"
+    config:
+      url: "https://api.example.com/enrich"
+      method: "POST"
+  - id: validate_output
+    type: python
+    depends_on: [enrich_data]
+    data_classification: "public"
+    config:
+      function: "validate_schema"
+  - id: store_data
+    type: database
+    depends_on: [validate_output]
+    data_classification: "public"
+    config:
+      type: "postgresql"
+      query: "INSERT INTO processed_data VALUES (...)"
+  - id: notify_completion
+    type: http
+    depends_on: [store_data]
+    data_classification: "public"
+    config:
+      url: "https://api.example.com/notify"
+      method: "POST"
+      data:
+        status: "completed"
+        workflow_id: "complex_data_pipeline"
+retry_policy:
+  max_attempts: 5
+  delay_seconds: 3
+  exponential_backoff: true
+compensation_handlers:
+  store_data: "rollback_store_data"
+  enrich_data: "rollback_enrich_data"
